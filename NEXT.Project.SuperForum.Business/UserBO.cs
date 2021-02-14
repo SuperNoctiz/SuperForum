@@ -23,7 +23,8 @@ namespace NEXT.Project.SuperForum.Business
             return operationExecution.ExecuteOperation(create);
         }
 
-        public OperationResult Get(Guid id)
+
+        public OperationResult<User> Get(Guid id)
         {
             var operationExecution = new OperationExecution();
 
@@ -31,6 +32,19 @@ namespace NEXT.Project.SuperForum.Business
             {
                 var userService = new UserService();
                 return userService.GetUser(id);
+            };
+
+            return operationExecution.ExecuteOperation(get);
+        }
+
+        public OperationResult<User> Get(string name)
+        {
+            var operationExecution = new OperationExecution();
+
+            Func<User> get = () =>
+            {
+                var userService = new UserService();
+                return userService.GetUserByName(name);
             };
 
             return operationExecution.ExecuteOperation(get);

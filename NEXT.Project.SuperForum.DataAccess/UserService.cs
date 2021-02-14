@@ -26,6 +26,17 @@ namespace NEXT.Project.SuperForum.DataAccess
             }
         }
 
+        public User GetUserByName(string name)
+        {
+            using (var context = new SuperForumContext())
+            {
+                var query = (from user in context.Users
+                             where user.Name == name
+                             select user);
+                return query.First();
+            }
+        }
+
         public List<User> GetUsers()
         {
             using (var context = new SuperForumContext())
