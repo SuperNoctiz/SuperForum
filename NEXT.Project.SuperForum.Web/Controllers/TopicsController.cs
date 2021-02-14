@@ -9,21 +9,45 @@ using System.Web.Mvc;
 using NEXT.Project.SuperForum.Business;
 using NEXT.Project.SuperForum.Data;
 using NEXT.Project.SuperForum.Web.ViewModels;
+using PagedList;
 
 namespace NEXT.Project.SuperForum.Web.Controllers
 {
     public class TopicsController : Controller
     {
         private SuperForumContext db = new SuperForumContext();
-        private readonly TopicBO topicService = new TopicBO();
+        private readonly TopicBO topicBO = new TopicBO();
 
-        // GET: Topics
-        public ActionResult Index()
+
+        public ActionResult Index(string searchString, string currentFilter, int? pageSize, int? page)
         {
+            int topicsPerPage = (pageSize ?? 3);
+            int pageNumber = (page ?? 1);
+
+            var topics = topicBO.Get().Result;
+
             var model = new TopicListViewModel
             {
-                Topics = db.Topics.Include(t => t.User)
+                PageSize = topicsPerPage,
+                PageSizeList = new SelectList(new int[] { 3, 5, 10 }),
+                PagedTopics = topics.ToPagedList(pageNumber, topicsPerPage)
             };
+
+            if (searchString != null)
+            {
+                page = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+            ViewBag.CurrentFilter = searchString;
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                model.PageSize = topicsPerPage;
+                model.PagedTopics = topics.Where(t => t.User.Name.Contains(searchString) || t.Title.Contains(searchString)).ToPagedList(pageNumber, topicsPerPage);
+            }
 
             return View(model);
         }
@@ -35,11 +59,16 @@ namespace NEXT.Project.SuperForum.Web.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Topic topic = db.Topics.Find(id);
-            if (topic == null)
+            TopicViewModel topic = new TopicViewModel();
+            var result = topicBO.Get(id);
+
+            if (!result.HasSucceeded)
             {
                 return HttpNotFound();
             }
+
+            topic.Topic = result.Result;
+
             return View(topic);
         }
 
@@ -55,18 +84,23 @@ namespace NEXT.Project.SuperForum.Web.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(CreateTopicViewModel topic)
+        public ActionResult Create(CreateTopicViewModel topicVM)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && Session["UserLoggedInId"] != null)
             {
+                var userBO = new UserBO();
+                var author = userBO.Get((Guid)Session["UserLoggedInId"]).Result;
                 var newTopic = new Topic
                 {
                     Id = Guid.NewGuid(),
-                    Title = topic.Title,
+                    UserId = author.Id,
+                    Title = topicVM.Title,
+                    Description = topicVM.Description,
                     CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
+                    UpdatedAt = DateTime.Now,
+                    IsDeleted = false
                 };
-                var result = topicService.Create(newTopic);
+                var result = topicBO.Create(newTopic);
                 if (result.HasSucceeded)
                 {
                     return RedirectToAction("Index");
@@ -76,7 +110,7 @@ namespace NEXT.Project.SuperForum.Web.Controllers
             }
 
             //ViewBag.UserId = new SelectList(db.Users, "Id", "Name", topic.UserId);
-            return View(topic);
+            return View(topicVM);
         }
 
         // GET: Topics/Edit/5

@@ -1,5 +1,7 @@
 ﻿using NEXT.Project.SuperForum.Data;
 using System;
+using System.Data;
+using System.Data.Entity;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,20 +20,19 @@ namespace NEXT.Project.SuperForum.DataAccess
             }
         }
 
-        public Topic GetTopic(Guid id)
+        public Topic GetTopic(Guid? id)
         {
             using (var context = new SuperForumContext())
             {
-                return context.Set<Topic>().Find(id);
+                return GetTopics().Where(t => t.Id == id).FirstOrDefault();
             }
         }
 
-        public List<Topic> GetTopics()
+        public IList<Topic> GetTopics()
         {
             using (var context = new SuperForumContext())
             {
-                return (from topic in context.Topics
-                        select topic).ToList();
+                return context.Topics.Include(t => t.User).ToList();
             }
         }
 
@@ -39,7 +40,7 @@ namespace NEXT.Project.SuperForum.DataAccess
         {
             using (var context = new SuperForumContext())
             {
-                context.Entry(topic).State = System.Data.Entity.EntityState.Modified;
+                context.Entry(topic).State = EntityState.Modified;
                 context.SaveChanges();
             }
         }
@@ -48,7 +49,7 @@ namespace NEXT.Project.SuperForum.DataAccess
         {
             using (var context = new SuperForumContext())
             {
-                context.Entry(GetTopic(id)).State = System.Data.Entity.EntityState.Deleted;
+                context.Entry(GetTopic(id)).State = EntityState.Deleted;
                 context.SaveChanges();
             }
         }

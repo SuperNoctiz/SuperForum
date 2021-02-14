@@ -23,7 +23,20 @@ namespace NEXT.Project.SuperForum.Business
             return operationExecution.ExecuteOperation(create);
         }
 
-        public OperationResult Get(Guid id)
+        public OperationResult<IQueryable<Topic>> Get()
+        {
+            var operationExecution = new OperationExecution();
+
+            Func<IQueryable<Topic>> get = () =>
+            {
+                var topicService = new TopicService();
+                return topicService.GetTopics().AsQueryable();
+            };
+
+            return operationExecution.ExecuteOperation(get);
+        }
+
+        public OperationResult<Topic> Get(Guid? id)
         {
             var operationExecution = new OperationExecution();
 

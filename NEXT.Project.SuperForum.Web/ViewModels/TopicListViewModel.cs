@@ -1,10 +1,14 @@
 ﻿using NEXT.Project.SuperForum.Data;
+using PagedList;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Web;
+using System.Web.Mvc;
 
 namespace NEXT.Project.SuperForum.Web.ViewModels
 {
@@ -21,6 +25,12 @@ namespace NEXT.Project.SuperForum.Web.ViewModels
         [Display(Name = "Author")]
         public virtual User User { get; set; }
 
-        public IQueryable<Topic> Topics { get; set; }
+        [Display(Name = "Topics per page")]
+        public int PageSize { get; set; }
+
+        public SelectList PageSizeList { get; set; }
+
+        public IPagedList<Topic> PagedTopics { get; set; }        
+
     }
 }

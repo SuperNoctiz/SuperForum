@@ -3,6 +3,8 @@ using NEXT.Project.SuperForum.Web.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 
@@ -18,15 +20,11 @@ namespace NEXT.Project.SuperForum.Web.Controllers
 
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
-
             return View();
         }
 
         public ActionResult Contact()
         {
-            ViewBag.Message = "Your contact page.";
-
             return View();
         }
 
@@ -47,7 +45,11 @@ namespace NEXT.Project.SuperForum.Web.Controllers
                 
                 if (result.HasSucceeded)
                 {
-                    if (result.Result.Password == userLogin.Password)
+                    var sha1 = new SHA1CryptoServiceProvider();
+                    var data = Encoding.ASCII.GetBytes(userLogin.Password);
+                    var encrypted = sha1.ComputeHash(data);
+                    var password = Encoding.ASCII.GetString(encrypted);
+                    if (result.Result.Password == password)
                     {
                         Session["UserLoggedInId"] = result.Result.Id;
                         Session["UserLoggedInName"] = result.Result.Name;
@@ -58,6 +60,13 @@ namespace NEXT.Project.SuperForum.Web.Controllers
             }
 
             return View(userLogin);
+        }
+
+        public ActionResult Logout()
+        {
+            Session["UserLoggedInId"] = null;
+            Session["UserLoggedInName"] = null;
+            return RedirectToAction("Index");
         }
     }
 }

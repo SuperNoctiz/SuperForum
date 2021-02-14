@@ -4,6 +4,8 @@ using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using NEXT.Project.SuperForum.Business;
@@ -53,12 +55,18 @@ namespace NEXT.Project.SuperForum.Web.Controllers
         {
             if (ModelState.IsValid)
             {
+                var sha1 = new SHA1CryptoServiceProvider();
+                var data = Encoding.ASCII.GetBytes(vm.Password);
+                var encrypted = sha1.ComputeHash(data);
+                var password = Encoding.ASCII.GetString(encrypted);
                 var user = new User
                 {
                     Id = Guid.NewGuid(),
                     Name = vm.Name,
                     Email = vm.Email,
-                    Password = vm.Password
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    Password = password
                 };
 
                 var result = _userService.Create(user);

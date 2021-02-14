@@ -1,4 +1,6 @@
 ﻿@model NEXT.Project.SuperForum.Web.ViewModels.TopicListViewModel
+@using PagedList.Mvc;
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
 
 @{
     ViewBag.Title = "Topics";
@@ -7,46 +9,52 @@
 
 <h2>Topics</h2>
 
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
-<table class="table">
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Title)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.UpdatedAt)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.User)
-        </th>
-        <th></th>
-    </tr>
+@{
+    if (Session["UserLoggedInId"] != null)
+    {
+        <p>
+            @Html.ActionLink("Create New", "Create")
+        </p>
+    }
+}
+@using (Html.BeginForm("Index", "Topics", FormMethod.Get))
+{
+    <div class="form-inline text-right">
+        <div class="form-group">
+            @Html.TextBox("SearchString", ViewBag.CurrentFilter as string, new { @class = "form-control" })
+            <input type="submit" value="Search" class="btn btn-default" />
+        </div>
+    </div>
+}
+<br />
+<div class="list-group">
+    @foreach (var item in Model.PagedTopics)
+    {
+        <a href="@Url.Action("Details", "Topics", new { id = item.Id })" class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">@Html.DisplayFor(modelItem => item.Title)</h5>
+                <small>@Html.DisplayFor(modelItem => item.CreatedAt)</small>
+            </div>
+            <small>@Html.DisplayNameFor(model => model.User): @Html.DisplayFor(modelItem => item.User.Name)</small>
+        </a>
+    }
 
-@foreach (var item in Model.Topics) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Title)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreatedAt)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.UpdatedAt)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.User.Name)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
-            @Html.ActionLink("Details", "Details", new { id=item.Id }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.Id })
-        </td>
-    </tr>
+</div>
+
+<br />
+
+@using (Html.BeginForm("Index", "Topics", FormMethod.Get))
+{
+    <div class="form-inline text-right">
+        <div class="form-group">
+            @Html.DisplayNameFor(model => model.PageSize)
+            @Html.DropDownListFor(model => model.PageSize, Model.PageSizeList, new { onchange = "this.form.submit();", @class = "form-control" })
+        </div>
+    </div>
 }
 
-</table>
+Page @(Model.PagedTopics.PageCount < Model.PagedTopics.PageNumber ? 0 : Model.PagedTopics.PageNumber) of @Model.PagedTopics.PageCount
+
+@Html.PagedListPager(Model.PagedTopics, page => Url.Action("Index",
+    new { page, currentFilter = ViewBag.CurrentFilter }))
+

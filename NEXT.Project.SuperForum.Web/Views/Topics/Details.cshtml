@@ -1,67 +1,32 @@
-﻿@model NEXT.Project.SuperForum.Data.Topic
+﻿@model NEXT.Project.SuperForum.Web.ViewModels.TopicViewModel
 
 @{
     ViewBag.Title = "Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Details</h2>
-
 <div>
-    <h4>Topic</h4>
+    <h2>@Html.DisplayFor(model => model.Topic.Title)</h2>
+    <p class="text-muted small">
+        @Html.DisplayNameFor(model => model.CreatedAt) @Html.DisplayFor(model => model.Topic.CreatedAt) | 
+        @Html.DisplayNameFor(model => model.UpdatedAt) @Html.DisplayFor(model => model.Topic.UpdatedAt)
+    </p>
+    <p class="text-muted">
+        @Html.DisplayNameFor(model => model.User): @Html.DisplayFor(model => model.Topic.User.Name)
+    </p>
     <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.CreatedAt)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.UpdatedAt)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.UpdatedAt)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.IsDeleted)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.IsDeleted)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.User.Name)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.User.Name)
-        </dd>
-
-    </dl>
+    <p>
+        @Html.DisplayFor(model => model.Topic.Description)
+    </p>
 </div>
+<hr />
 <p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @{
+        if (Session["UserLoggedInId"] != null && Session["UserLoggedInId"].Equals(Model.Topic.UserId))
+        {
+            @Html.ActionLink("Edit", "Edit", new { id = Model.Topic.Id }) <span>|</span>
+            @Html.ActionLink("Delete", "Delete", new { id = Model.Topic.Id }) <span>|</span>
+        }
+    }
     @Html.ActionLink("Back to List", "Index")
 </p>
